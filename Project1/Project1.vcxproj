@@ -88,7 +88,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\Dependencies\glfw-3.2.1.bin.WIN64\include\GLFW;..\Dependencies\glew-2.1.0\include;..\Dependencies\glm-0.9.9-a2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dependencies\glfw-3.2.1.bin.WIN64\include\GLFW;..\Dependencies\glew-2.1.0\include;..\Dependencies\glm-0.9.9-a2;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;..\Dependencies\glew-2.1.0\lib\Release\x64\glew32.lib;..\Dependencies\glfw-3.2.1.bin.WIN64\lib-vc2015\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -121,7 +121,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\shader.cpp" />
+    <ClCompile Include="controls.cpp" />
     <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\shader.hpp" />
+    <ClInclude Include="controls.hpp" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="Settings.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\StandardShading.fragmentshader" />
+    <None Include="..\Shaders\StandardShading.vertexshader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
