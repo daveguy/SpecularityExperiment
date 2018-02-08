@@ -1,7 +1,7 @@
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <vector>
 // Include GLEW
 #include <GL/glew.h>
 
@@ -75,7 +75,7 @@ int main(void)
 	glBindVertexArray(VertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders("../Shaders/StandardShading.vertexshader", "../Shaders/StandardShading.fragmentshader");
+	GLuint programID = LoadShaders("../Shaders/StandardShading.vert", "../Shaders/StandardShading.frag");
 
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
@@ -122,13 +122,40 @@ int main(void)
 	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(g_normal_buffer_data), g_normal_buffer_data, GL_STATIC_DRAW);
 
-	GLuint lightId = glGetUniformLocation(programID, "LightPosition_worldspace");
+	//create a vector of lights
+	std::vector<Light> lights{ 
+		{ glm::vec4(4,4,4,1), glm::vec4(1,1,1,50.0) },
+		{ glm::vec4(-4,4,-4,1), glm::vec4(1,1,1,50.0) }
+	};
 
-	//create a light
-	Light light1{ glm::vec3(4,4,4), glm::vec3(1,1,1), 50.0f };
+	//Create a uniform buffer
+	GLuint lightBuffer;
+	glGenBuffers(1, &lightBuffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, lightBuffer);
+	glBufferData(GL_UNIFORM_BUFFER, lights.size()*sizeof(Light), &lights[0], GL_STATIC_DRAW);
 
-	//create a material
-	Material mat1{ glm::vec3(0,0,0), 0.1f, 0.3f, 5.0f };
+	//get location in GPU memory and copy to there
+	GLvoid* pointerToGPUMemory = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+	memcpy(pointerToGPUMemory, &lights[0], lights.size() * sizeof(Light));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+	//Get the ID of the uniform block in the shader
+	GLuint lightBlockID = glGetUniformBlockIndex(programID, "lights");
+
+
+	//repeat for material a material
+	Material mat1{ glm::vec4(1,0,0,0), 0.1f, 0.3f, 5.0f }; 
+	GLuint materialBuffer;
+	glGenBuffers(1, &materialBuffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, materialBuffer);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(mat1), &mat1, GL_DYNAMIC_DRAW);
+
+	pointerToGPUMemory = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+	memcpy(pointerToGPUMemory, &mat1, sizeof(mat1));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+	unsigned int materialBlockID = glGetUniformBlockIndex(programID, "material");
+
 
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -146,7 +173,9 @@ int main(void)
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &modelMatrix[0][0]);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
-		glUniform3f(lightId, light1.lightPosition_worldspace.x, light1.lightPosition_worldspace.y, light1.lightPosition_worldspace.z);
+
+		//Add the light
+		//glUniform3f(lightId, light1.lightPosition_worldspace.x, light1.lightPosition_worldspace.y, light1.lightPosition_worldspace.z);
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -169,6 +198,15 @@ int main(void)
 			0,
 			(void*)0
 		);
+
+		//bind the lightbuffer
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, lightBuffer);
+		//connect the uniform buffer and shader
+		glUniformBlockBinding(programID, lightBlockID, 0);
+
+		//same for material, bind to slot 1
+		glBindBufferBase(GL_UNIFORM_BUFFER, 1, materialBuffer);
+		glUniformBlockBinding(programID, 1, materialBlockID);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3*4);
 		glDisableVertexAttribArray(0);

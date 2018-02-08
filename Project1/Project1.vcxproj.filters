@@ -49,10 +49,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Shaders\StandardShading.fragmentshader">
+    <None Include="..\Shaders\StandardShading.frag">
       <Filter>shaders</Filter>
     </None>
-    <None Include="..\Shaders\StandardShading.vertexshader">
+    <None Include="..\Shaders\StandardShading.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

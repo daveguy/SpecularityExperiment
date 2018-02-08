@@ -133,8 +133,8 @@
     <ClInclude Include="Settings.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Shaders\StandardShading.fragmentshader" />
-    <None Include="..\Shaders\StandardShading.vertexshader" />
+    <None Include="..\Shaders\StandardShading.frag" />
+    <None Include="..\Shaders\StandardShading.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
