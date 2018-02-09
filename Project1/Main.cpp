@@ -15,6 +15,7 @@ using namespace glm;
 
 #include <shader.hpp>
 #include <controls.hpp>
+#include "ObjectLoader.h"
 #include "Material.h"
 #include "Light.h"
 
@@ -82,7 +83,8 @@ int main(void)
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 
-	static const GLfloat g_vertex_buffer_data[] = {
+	//TODO replace this with a propper mesh
+	/*static const GLfloat g_vertex_buffer_data[] = {
 		-1.0f, -1.0f, 1.0f,
 		1.0f, -1.0f, 1.0f,
 		0.0f,  0.0f, 0.0f,
@@ -111,7 +113,6 @@ int main(void)
 		-0.5f, 0.5, 0.0f,
 		-0.5f, 0.5, 0.0f,
 	};
-
 	GLuint vertexBuffer;
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -120,12 +121,36 @@ int main(void)
 	GLuint normalBuffer;
 	glGenBuffers(1, &normalBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_normal_buffer_data), g_normal_buffer_data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_normal_buffer_data), g_normal_buffer_data, GL_STATIC_DRAW);*/
+
+	ObjectLoader objectLoader;
+	const char * path = "monkey.obj";
+	std::vector<unsigned short> indices;
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+	objectLoader.LoadObjectFile(path, indices, vertices, uvs, normals);
+
+	GLuint vertexBuffer;
+	glGenBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
+	GLuint normalBuffer;
+	glGenBuffers(1, &normalBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+
+	GLuint elementBuffer;
+	glGenBuffers(1, &elementBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
 	//create a vector of lights
+	//shader currently allows for a max of 10 lights
 	std::vector<Light> lights{ 
 		{ glm::vec4(4,4,4,1), glm::vec4(1,1,1,50.0) },
-		{ glm::vec4(-4,4,-4,1), glm::vec4(1,1,1,50.0) }
+		{ glm::vec4(-4,4,-4,1), glm::vec4(1,1,1,10.0) }
 	};
 
 	//Create a uniform buffer
@@ -154,7 +179,7 @@ int main(void)
 	memcpy(pointerToGPUMemory, &mat1, sizeof(mat1));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-	unsigned int materialBlockID = glGetUniformBlockIndex(programID, "material");
+	GLuint materialBlockID = glGetUniformBlockIndex(programID, "material");
 
 
 	do {
@@ -165,8 +190,14 @@ int main(void)
 		computeMatricesFromInputs();
 		glm::mat4 projectionMatrix = getProjectionMatrix();
 		glm::mat4 viewMatrix = getViewMatrix();
-		glm::mat4 modelMatrix = glm::mat4(1.0); //tetrahedron is at the origin
+
+		//tetrahedron is at the origin. 
+		//Uniform scaling only! if for some reason you want to use non-uniform scaling you need to use the
+		//inverse model-view matrix in the fragment shader where indicated
+		glm::mat4 modelMatrix = glm::mat4(1.0); 
+
 		glm::mat4 MVP = projectionMatrix * viewMatrix * modelMatrix;
+		glm::mat4 MVInvTrans = glm::inverse(glm::transpose(viewMatrix * modelMatrix));
 
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
@@ -208,7 +239,15 @@ int main(void)
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, materialBuffer);
 		glUniformBlockBinding(programID, 1, materialBlockID);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3*4);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+
+		//glDrawArrays(GL_TRIANGLES, 0, 3*4);
+		glDrawElements(
+			GL_TRIANGLES,
+			indices.size(),
+			GL_UNSIGNED_SHORT,
+			(void*)0
+		);
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 

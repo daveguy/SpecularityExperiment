@@ -88,10 +88,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\Dependencies\glfw-3.2.1.bin.WIN64\include\GLFW;..\Dependencies\glew-2.1.0\include;..\Dependencies\glm-0.9.9-a2;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dependencies\glfw-3.2.1.bin.WIN64\include\GLFW;..\Dependencies\glew-2.1.0\include;..\Dependencies\glm-0.9.9-a2;..\common;..\Dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;..\Dependencies\glew-2.1.0\lib\Release\x64\glew32.lib;..\Dependencies\glfw-3.2.1.bin.WIN64\lib-vc2015\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;..\Dependencies\glew-2.1.0\lib\Release\x64\glew32.lib;..\Dependencies\glfw-3.2.1.bin.WIN64\lib-vc2015\glfw3.lib;..\Dependencies\assimp\lib64\assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,12 +124,14 @@
     <ClCompile Include="..\common\shader.cpp" />
     <ClCompile Include="controls.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="ObjectLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\shader.hpp" />
     <ClInclude Include="controls.hpp" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="ObjectLoader.h" />
     <ClInclude Include="Settings.h" />
   </ItemGroup>
   <ItemGroup>
