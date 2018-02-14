@@ -1,0 +1,1 @@
+These are the matlab scripts I used to gfenerate the 1/f noise, and a sample of a generated noise

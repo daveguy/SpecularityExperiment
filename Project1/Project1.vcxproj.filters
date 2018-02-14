@@ -27,10 +27,13 @@
     <ClCompile Include="..\common\shader.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="controls.cpp">
+    <ClCompile Include="ObjectLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectLoader.cpp">
+    <ClCompile Include="..\common\Controls.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="LightsManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,16 +44,19 @@
     <ClInclude Include="Settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="controls.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
+    <ClInclude Include="ObjectLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectLoader.h">
+    <ClInclude Include="..\common\Controls.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="LightsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

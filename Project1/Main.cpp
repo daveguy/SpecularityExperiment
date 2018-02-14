@@ -7,26 +7,28 @@
 
 // Include GLFW
 #include <glfw3.h>
-GLFWwindow* window;
+
 
 // Include GLM
 #include <glm/glm.hpp>
 using namespace glm;
 
 #include <shader.hpp>
-#include <controls.hpp>
+#include <Controls.h>
 #include "ObjectLoader.h"
 #include "Material.h"
-#include "Light.h"
+#include "LightsManager.h"
+#include "Settings.h"
 
-int main(void)
+//initializes glfw and glew and creates a initializes window
+bool init(GLFWwindow** window)
 {
 	// Initialise GLFW
 	if (!glfwInit())
 	{
 		fprintf(stderr, "Failed to initialize GLFW\n");
 		getchar();
-		return -1;
+		return false;
 	}
 
 	glfwWindowHint(GLFW_SAMPLES, 4);
@@ -36,37 +38,48 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(1024, 768, "Project1", NULL, NULL);
-	if (window == NULL) {
+	*window = glfwCreateWindow(1024, 768, "Project1", NULL, NULL);
+	if (*window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		getchar();
 		glfwTerminate();
-		return -1;
+		return false;
 	}
-	glfwMakeContextCurrent(window);
-	glfwSetScrollCallback(window, scrollFun);//set call back function to enable mouse scrolling
-
-	// Initialize GLEW
+	glfwMakeContextCurrent(*window);
+											 // Initialize GLEW
 	if (glewInit() != GLEW_OK) {
 		fprintf(stderr, "Failed to initialize GLEW\n");
 		getchar();
 		glfwTerminate();
-		return -1;
+		return false;
 	}
 
 	// Ensure we can capture the escape key being pressed below
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetInputMode(*window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	// Hide the mouse and enable unlimited mouvement
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Set the mouse at the center of the screen
 	glfwPollEvents();
-	glfwSetCursorPos(window, 1024 / 2, 768 / 2);
+	glfwSetCursorPos(*window, 1024 / 2, 768 / 2);
+	return true;
+}
+
+int main(void)
+{
+	Controls controls(settings::initialPosition, settings::initialHorizontalAngle,settings::initialVerticalAngle,
+		settings::initialFoV, settings::moveSpeed, settings::scrollSpeed, settings::mouseSpeed, 0.0f);
+
+	LightsManager lightsManager;
+
+	GLFWwindow* window;
+	if (!init(&window)) { return -1; }
+
+	glfwSetScrollCallback(window, Controls::scrollFun);//set call back function to enable mouse scrolling
 
 	// Dark blue background
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
+	glClearColor(settings::backgroundColor.x, settings::backgroundColor.y, settings::backgroundColor.z, settings::backgroundColor.a);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
@@ -75,53 +88,16 @@ int main(void)
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 
-	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders("../Shaders/StandardShading.vert", "../Shaders/StandardShading.frag");
+	//create the program
+	GLuint programID = glCreateProgram();
+
+	//Load the shaders and compile them into the program
+	LoadShaders(programID, "../Shaders/StandardShading.vert", "../Shaders/StandardShading.frag");
 
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
-
-	//TODO replace this with a propper mesh
-	/*static const GLfloat g_vertex_buffer_data[] = {
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-		0.0f,  0.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		0.0f,  0.0f, 0.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-		0.0f,  0.0f, 0.0f,
-	};
-
-	static const GLfloat g_normal_buffer_data[] = {
-		0.0f, 0.5f, 0.5f,
-		0.0f, 0.5f, 0.5f,
-		0.0f, 0.5f, 0.5f,
-		0.5f, 0.5, 0.0f,
-		0.5f, 0.5, 0.0f,
-		0.5f, 0.5, 0.0f,
-		0.0f, 0.5f, -0.5f,
-		0.0f, 0.5f, -0.5f,
-		0.0f, 0.5f, -0.5f,
-		-0.5f, 0.5, 0.0f,
-		-0.5f, 0.5, 0.0f,
-		-0.5f, 0.5, 0.0f,
-	};
-	GLuint vertexBuffer;
-	glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-	GLuint normalBuffer;
-	glGenBuffers(1, &normalBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_normal_buffer_data), g_normal_buffer_data, GL_STATIC_DRAW);*/
 
 	ObjectLoader objectLoader;
 	const char * path = "monkey.obj";
@@ -146,27 +122,7 @@ int main(void)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
-	//create a vector of lights
-	//shader currently allows for a max of 10 lights
-	std::vector<Light> lights{ 
-		{ glm::vec4(4,4,4,1), glm::vec4(1,1,1,50.0) },
-		{ glm::vec4(-4,4,-4,1), glm::vec4(1,1,1,10.0) }
-	};
-
-	//Create a uniform buffer
-	GLuint lightBuffer;
-	glGenBuffers(1, &lightBuffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, lightBuffer);
-	glBufferData(GL_UNIFORM_BUFFER, lights.size()*sizeof(Light), &lights[0], GL_STATIC_DRAW);
-
-	//get location in GPU memory and copy to there
-	GLvoid* pointerToGPUMemory = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-	memcpy(pointerToGPUMemory, &lights[0], lights.size() * sizeof(Light));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-
-	//Get the ID of the uniform block in the shader
-	GLuint lightBlockID = glGetUniformBlockIndex(programID, "lights");
-
+	GLvoid* pointerToGPUMemory = lightsManager.setUpLights(programID);
 
 	//repeat for material a material
 	Material mat1{ glm::vec4(1,0,0,0), 0.1f, 0.3f, 5.0f }; 
@@ -175,6 +131,7 @@ int main(void)
 	glBindBuffer(GL_UNIFORM_BUFFER, materialBuffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(mat1), &mat1, GL_DYNAMIC_DRAW);
 
+	//GLvoid* pointerToGPUMemory = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	pointerToGPUMemory = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	memcpy(pointerToGPUMemory, &mat1, sizeof(mat1));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
@@ -187,9 +144,9 @@ int main(void)
 
 		glUseProgram(programID);
 
-		computeMatricesFromInputs();
-		glm::mat4 projectionMatrix = getProjectionMatrix();
-		glm::mat4 viewMatrix = getViewMatrix();
+		controls.computeMatricesFromInputs(window);
+		glm::mat4 projectionMatrix = controls.getProjectionMatrix();
+		glm::mat4 viewMatrix = controls.getViewMatrix();
 
 		//tetrahedron is at the origin. 
 		//Uniform scaling only! if for some reason you want to use non-uniform scaling you need to use the
@@ -204,9 +161,6 @@ int main(void)
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &modelMatrix[0][0]);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
-
-		//Add the light
-		//glUniform3f(lightId, light1.lightPosition_worldspace.x, light1.lightPosition_worldspace.y, light1.lightPosition_worldspace.z);
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -230,12 +184,10 @@ int main(void)
 			(void*)0
 		);
 
-		//bind the lightbuffer
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, lightBuffer);
-		//connect the uniform buffer and shader
-		glUniformBlockBinding(programID, lightBlockID, 0);
+		//bind lights to slot 0
+		lightsManager.BindAndConnectLights(programID, 0);
 
-		//same for material, bind to slot 1
+		//bind material to slot 1
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, materialBuffer);
 		glUniformBlockBinding(programID, 1, materialBlockID);
 

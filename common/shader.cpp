@@ -14,7 +14,7 @@ using namespace std;
 
 #include "shader.hpp"
 
-GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path){
+GLuint LoadShaders(const GLuint	ProgramID, const char * vertex_file_path, const char * fragment_file_path){
 
 	// Create the shaders
 	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -84,7 +84,7 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 
 	// Link the program
 	printf("Linking program\n");
-	GLuint ProgramID = glCreateProgram();
+	//GLuint ProgramID = glCreateProgram();
 	glAttachShader(ProgramID, VertexShaderID);
 	glAttachShader(ProgramID, FragmentShaderID);
 	glLinkProgram(ProgramID);

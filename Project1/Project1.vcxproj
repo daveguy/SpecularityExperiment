@@ -121,15 +121,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\Controls.cpp" />
     <ClCompile Include="..\common\shader.cpp" />
-    <ClCompile Include="controls.cpp" />
+    <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ObjectLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\Controls.h" />
     <ClInclude Include="..\common\shader.hpp" />
-    <ClInclude Include="controls.hpp" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="LightsManager.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="ObjectLoader.h" />
     <ClInclude Include="Settings.h" />

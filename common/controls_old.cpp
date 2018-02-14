@@ -1,14 +1,11 @@
 // Include GLFW
 #include <glfw3.h>
-extern GLFWwindow* window; // The "extern" keyword here is to access the variable "window" declared in tutorialXXX.cpp. This is a hack to keep the tutorials simple. Please avoid this.
-
 // Include GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
 
 #include "controls.hpp"
-#include "Settings.h"
 
 
 glm::mat4 ViewMatrix;
@@ -23,14 +20,17 @@ glm::mat4 getProjectionMatrix(){
 
 
 // Initial position : on +Z
-glm::vec3 position = settings::initialPosition;
+glm::vec3 position = glm::vec3( 0, 0, 5 );
 // Initial horizontal angle : toward -Z
-float horizontalAngle = settings::initialHorizontalAngle;
+float horizontalAngle = 3.14f;
 // Initial vertical angle : none
-float verticalAngle = settings::initialVerticalAngle;
+float verticalAngle = 0.0f;
 // Initial Field of View
-float FoV = settings::initialFoV;
+float initialFoV = 45.0f;
 
+float speed = 3.0f; // 3 units / second
+float scrollSpeed = 8.0f;
+float mouseSpeed = 0.002f;
 float scroll = 0.0f;
 
 //callback function for field of view
@@ -39,7 +39,7 @@ float scroll = 0.0f;
 	 scroll += yOffset;
  }
 
-void computeMatricesFromInputs(){
+void computeMatricesFromInputs(GLFWwindow* window){
 
 	// glfwGetTime is called only once, the first time this function is called
 	static double lastTime = glfwGetTime();
@@ -56,8 +56,8 @@ void computeMatricesFromInputs(){
 	glfwSetCursorPos(window, 1024/2, 768/2);
 
 	// Compute new orientation
-	horizontalAngle += settings::mouseSpeed * float(1024/2 - xpos );
-	verticalAngle   += settings::mouseSpeed * float( 768/2 - ypos );
+	horizontalAngle += mouseSpeed * float(1024/2 - xpos );
+	verticalAngle   += mouseSpeed * float( 768/2 - ypos );
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
@@ -78,26 +78,26 @@ void computeMatricesFromInputs(){
 
 	// Move forward
 	if (glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS){
-		position += direction * deltaTime * settings::moveSpeed;
+		position += direction * deltaTime * speed;
 	}
 	// Move backward
 	if (glfwGetKey( window, GLFW_KEY_S ) == GLFW_PRESS){
-		position -= direction * deltaTime * settings::moveSpeed;
+		position -= direction * deltaTime * speed;
 	}
 	// Strafe right
 	if (glfwGetKey( window, GLFW_KEY_D ) == GLFW_PRESS){
-		position += right * deltaTime * settings::moveSpeed;
+		position += right * deltaTime * speed;
 	}
 	// Strafe left
 	if (glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS){
-		position -= right * deltaTime * settings::moveSpeed;
+		position -= right * deltaTime * speed;
 	}
 
 	//use mouse wheel to move up/down
-	position += up * deltaTime * settings::scrollSpeed * scroll;
+	position += up * deltaTime * scrollSpeed * scroll;
 	scroll = 0.0f;
 	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	ProjectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, 0.1f, 100.0f);
+	ProjectionMatrix = glm::perspective(glm::radians(initialFoV), 4.0f / 3.0f, 0.1f, 100.0f);
 	// Camera matrix
 	ViewMatrix       = glm::lookAt(
 								position,           // Camera is here
