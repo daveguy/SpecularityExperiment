@@ -11,7 +11,6 @@
 
 // Include GLM
 #include <glm/glm.hpp>
-using namespace glm;
 
 #include <shader.hpp>
 #include <Controls.h>
@@ -100,7 +99,7 @@ int main(void)
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 
 	ObjectLoader objectLoader;
-	const char * path = "monkey.obj";
+	const char * path = "surface.obj";
 	std::vector<unsigned short> indices;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
@@ -154,7 +153,6 @@ int main(void)
 		glm::mat4 modelMatrix = glm::mat4(1.0); 
 
 		glm::mat4 MVP = projectionMatrix * viewMatrix * modelMatrix;
-		glm::mat4 MVInvTrans = glm::inverse(glm::transpose(viewMatrix * modelMatrix));
 
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
@@ -193,13 +191,32 @@ int main(void)
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
 
-		//glDrawArrays(GL_TRIANGLES, 0, 3*4);
 		glDrawElements(
 			GL_TRIANGLES,
 			indices.size(),
 			GL_UNSIGNED_SHORT,
 			(void*)0
 		);
+
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(2.0f, 0.0f, 0.0f));
+		/*modelMatrix = glm::mat4{
+			{1,0,0,2.1},
+			{0,1,0,0},
+			{0,0,1,0},
+			{0,0,0,1}
+		};*/
+		//modelMatrix = glm::transpose(modelMatrix);
+		MVP = projectionMatrix * viewMatrix * modelMatrix;
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &modelMatrix[0][0]);
+		
+		glDrawElements(
+			GL_TRIANGLES,
+			indices.size(),
+			GL_UNSIGNED_SHORT,
+			(void*)0
+		);
+
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 

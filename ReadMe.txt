@@ -2,6 +2,7 @@ Uses
 GLEW
 GLM
 GLFW
+AssImp
 they're not huge so I left the parts I need in the repo, in the Dependencies folder.
 They are the x64 version (glew and glfw), to use x86 swap them out. 
 After the first compile you need to get the glew32.dll file from 
