@@ -17,9 +17,10 @@
 #include "ObjectLoader.h"
 #include "Material.h"
 #include "LightsManager.h"
+#include "Surface.h"
 #include "Settings.h"
 
-//initializes glfw and glew and creates a initializes window
+//initializes glfw and glew and creates a window
 bool init(GLFWwindow** window)
 {
 	// Initialise GLFW
@@ -69,7 +70,6 @@ int main(void)
 {
 	Controls controls(settings::initialPosition, settings::initialHorizontalAngle,settings::initialVerticalAngle,
 		settings::initialFoV, settings::moveSpeed, settings::scrollSpeed, settings::mouseSpeed, 0.0f);
-
 	LightsManager lightsManager;
 
 	GLFWwindow* window;
@@ -98,28 +98,8 @@ int main(void)
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 
-	ObjectLoader objectLoader;
-	const char * path = "surface.obj";
-	std::vector<unsigned short> indices;
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals;
-	objectLoader.LoadObjectFile(path, indices, vertices, uvs, normals);
-
-	GLuint vertexBuffer;
-	glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
-	GLuint normalBuffer;
-	glGenBuffers(1, &normalBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-
-	GLuint elementBuffer;
-	glGenBuffers(1, &elementBuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+	//create a surface and pass it the ID's it needs to set the matrix's
+	Surface surface(MatrixID, ModelMatrixID, settings::pathToObject);
 
 	GLvoid* pointerToGPUMemory = lightsManager.setUpLights(programID);
 
@@ -130,7 +110,6 @@ int main(void)
 	glBindBuffer(GL_UNIFORM_BUFFER, materialBuffer);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(mat1), &mat1, GL_DYNAMIC_DRAW);
 
-	//GLvoid* pointerToGPUMemory = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	pointerToGPUMemory = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	memcpy(pointerToGPUMemory, &mat1, sizeof(mat1));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
@@ -147,40 +126,15 @@ int main(void)
 		glm::mat4 projectionMatrix = controls.getProjectionMatrix();
 		glm::mat4 viewMatrix = controls.getViewMatrix();
 
-		//tetrahedron is at the origin. 
+		//surface center is at the origin. 
 		//Uniform scaling only! if for some reason you want to use non-uniform scaling you need to use the
-		//inverse model-view matrix in the fragment shader where indicated
+		//inverse transpose model-view matrix in the fragment shader where indicated
 		glm::mat4 modelMatrix = glm::mat4(1.0); 
 
 		glm::mat4 MVP = projectionMatrix * viewMatrix * modelMatrix;
 
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &modelMatrix[0][0]);
+		// Send the view matrix, the model and MVP are set by the surface
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
-
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-		glVertexAttribPointer(
-			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
-
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-		glVertexAttribPointer(
-			1,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			(void*)0
-		);
 
 		//bind lights to slot 0
 		lightsManager.BindAndConnectLights(programID, 0);
@@ -189,36 +143,7 @@ int main(void)
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, materialBuffer);
 		glUniformBlockBinding(programID, 1, materialBlockID);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
-
-		glDrawElements(
-			GL_TRIANGLES,
-			indices.size(),
-			GL_UNSIGNED_SHORT,
-			(void*)0
-		);
-
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(2.0f, 0.0f, 0.0f));
-		/*modelMatrix = glm::mat4{
-			{1,0,0,2.1},
-			{0,1,0,0},
-			{0,0,1,0},
-			{0,0,0,1}
-		};*/
-		//modelMatrix = glm::transpose(modelMatrix);
-		MVP = projectionMatrix * viewMatrix * modelMatrix;
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &modelMatrix[0][0]);
-		
-		glDrawElements(
-			GL_TRIANGLES,
-			indices.size(),
-			GL_UNSIGNED_SHORT,
-			(void*)0
-		);
-
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
+		surface.Render(modelMatrix, viewMatrix, projectionMatrix);
 
 		// Swap buffers
 		glfwSwapBuffers(window);

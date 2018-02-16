@@ -20,4 +20,6 @@ namespace settings
 	float mouseSpeed = 0.002f;
 
 	glm::vec4 backgroundColor(0.0f, 0.0f, 0.4f, 0.0f);
+
+	char* pathToObject = "surface.obj";
 }

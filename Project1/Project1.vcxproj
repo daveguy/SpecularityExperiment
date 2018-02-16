@@ -126,6 +126,7 @@
     <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ObjectLoader.cpp" />
+    <ClCompile Include="Surface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\Controls.h" />
@@ -135,6 +136,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="ObjectLoader.h" />
     <ClInclude Include="Settings.h" />
+    <ClInclude Include="Surface.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\StandardShading.frag" />
