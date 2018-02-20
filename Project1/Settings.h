@@ -4,9 +4,12 @@
 
 namespace settings
 {
-	//Initial position and FoV for he controls
-	// Initial position : on +Z
-	glm::vec3 initialPosition = glm::vec3(0, 0, 5);
+	//window settings
+	glm::vec2 winDimemsions(1024, 768);
+
+	//Initial position and FoV for the camera controls
+	// Initial position
+	glm::vec3 initialPosition = glm::vec3(0, 1, 12);
 	// Initial horizontal angle : toward -Z
 	float initialHorizontalAngle = 3.14f;
 	// Initial vertical angle : none
@@ -21,5 +24,5 @@ namespace settings
 
 	glm::vec4 backgroundColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	char* pathToObject = "surface.obj";
+	char* pathToObject = "surfaceLowAmp.obj";
 }

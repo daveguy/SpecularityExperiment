@@ -4,6 +4,7 @@ Surface::Surface(GLuint MatrixID, GLuint ModelMatrixID, const char* pathToObject
 {
 
 	translations.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+
 	translations.push_back(glm::vec3(2.0f, 0.0f, 0.0f));
 	translations.push_back(glm::vec3(-2.0f, 0.0f, 0.0f));
 	translations.push_back(glm::vec3(0.0f, 0.0f, 2.0f));
@@ -12,6 +13,15 @@ Surface::Surface(GLuint MatrixID, GLuint ModelMatrixID, const char* pathToObject
 	translations.push_back(glm::vec3(2.0f, 0.0f, -2.0f));
 	translations.push_back(glm::vec3(-2.0f, 0.0f, 2.0f));
 	translations.push_back(glm::vec3(-2.0f, 0.0f, -2.0f));
+
+	translations.push_back(glm::vec3(-2.0f, 0.0f, 4.0f));
+	translations.push_back(glm::vec3(0.0f, 0.0f, 4.0f));
+	translations.push_back(glm::vec3(2.0f, 0.0f, 4.0f));
+
+	translations.push_back(glm::vec3(-2.0f, 0.0f, 6.0f));
+	translations.push_back(glm::vec3(0.0f, 0.0f, 6.0f));
+	translations.push_back(glm::vec3(2.0f, 0.0f, 6.0f));
+
 
 	const char * path = pathToObject;
 	objectLoader.LoadObjectFile(path, indices, vertices, uvs, normals);

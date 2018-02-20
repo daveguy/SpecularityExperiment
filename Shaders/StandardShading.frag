@@ -57,10 +57,12 @@ void main(){
 		vec3 R = reflect(-l,n);
 		float cosAlpha = clamp( dot( E,R ), 0,1 );
 		
+		float attenuation = dist*dist;
+
 		color += 
 			// Diffuse : "color" of the object
-			diffuseColor.xyz * lights[i].lightColor.xyz * lights[i].lightColor.w * cosTheta / (dist*dist) +
+			diffuseColor.xyz * lights[i].lightColor.xyz * lights[i].lightColor.w * cosTheta / attenuation +
 			// Specular : reflective highlight, like a mirror
-			specularReflectance * lights[i].lightColor.xyz * lights[i].lightColor.w * pow(cosAlpha,specularPower) / (dist*dist);
+			specularReflectance * lights[i].lightColor.xyz * lights[i].lightColor.w * pow(cosAlpha,specularPower) / attenuation;
 	}
 }

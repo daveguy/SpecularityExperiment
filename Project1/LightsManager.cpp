@@ -3,8 +3,8 @@
 GLvoid* LightsManager::setUpLights(GLuint programID)
 {
 	lights = {
-		{ glm::vec4(4,4,4,1), glm::vec4(1,1,1,50.0) },
-		{ glm::vec4(-4,4,-4,1), glm::vec4(1,1,1,10.0) }
+		{ glm::vec4(1.5,1,-5,1), glm::vec4(1,1,1,20) },
+		{ glm::vec4(-1.5,1,-5,1), glm::vec4(1,1,1,20) }
 	};
 
 	//Create a uniform buffer

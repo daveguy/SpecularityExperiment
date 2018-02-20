@@ -88,10 +88,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\Dependencies\glfw-3.2.1.bin.WIN64\include\GLFW;..\Dependencies\glew-2.1.0\include;..\Dependencies\glm-0.9.9-a2;..\common;..\Dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dependencies\glfw-3.2.1.bin.WIN64\include\GLFW;..\Dependencies\glew-2.1.0\include;..\Dependencies\glm-0.9.9-a2;..\common;..\Dependencies;..\Dependencies\AntTweakBar\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;..\Dependencies\glew-2.1.0\lib\Release\x64\glew32.lib;..\Dependencies\glfw-3.2.1.bin.WIN64\lib-vc2015\glfw3.lib;..\Dependencies\assimp\lib64\assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;..\Dependencies\glew-2.1.0\lib\Release\x64\glew32.lib;..\Dependencies\glfw-3.2.1.bin.WIN64\lib-vc2015\glfw3.lib;..\Dependencies\assimp\lib64\assimp.lib;..\Dependencies\AntTweakBar\lib\AntTweakBar64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

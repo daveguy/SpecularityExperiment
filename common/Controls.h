@@ -22,12 +22,14 @@ public:
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();
 
+	///position is public so the AntTweak can acces them directly
+	// Initial position : on +Z
+	glm::vec3 position;
+
 private:
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;
 
-	// Initial position : on +Z
-	glm::vec3 position;
 	// Initial horizontal angle : toward -Z
 	float horizontalAngle;
 	// Initial vertical angle : none

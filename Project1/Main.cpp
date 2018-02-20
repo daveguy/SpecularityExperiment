@@ -8,6 +8,7 @@
 // Include GLFW
 #include <glfw3.h>
 
+#include "AntTweakBar.h"
 
 // Include GLM
 #include <glm/glm.hpp>
@@ -38,7 +39,7 @@ bool init(GLFWwindow** window)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	*window = glfwCreateWindow(1024, 768, "Project1", NULL, NULL);
+	*window = glfwCreateWindow(settings::winDimemsions.x, settings::winDimemsions.y, "Project1", NULL, NULL);
 	if (*window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		getchar();
@@ -66,6 +67,31 @@ bool init(GLFWwindow** window)
 	return true;
 }
 
+//TODO set up GUI to display/change the material and lights?
+void initGUI(GLFWwindow* window, Controls& controls)
+{
+	TwInit(TW_OPENGL_CORE, NULL);
+	TwWindowSize(settings::winDimemsions.x, settings::winDimemsions.y);
+	TwBar* positionGUI = TwNewBar("Position Settings");
+	TwDefine(" TW_HELP visible=false ");
+	TwAddVarRW(positionGUI, "Pos X", TW_TYPE_FLOAT, &controls.position.x, "step=0.01");
+	TwAddVarRW(positionGUI, "Pos Y", TW_TYPE_FLOAT, &controls.position.y, "step=0.01");
+	TwAddVarRW(positionGUI, "Pos Z", TW_TYPE_FLOAT, &controls.position.z, "step=0.01");
+	
+	glfwSetMouseButtonCallback(window, (GLFWmousebuttonfun)TwEventMouseButtonGLFW);
+}
+
+//TODO this should make the mouse visible/invisible and set mouse callbacks to the GUI or not
+bool showGUI = true;
+void setGUI(GLFWwindow*, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_G && action == GLFW_PRESS)
+	{
+		showGUI = !showGUI;
+	}
+}
+
+//TODO set up another callback for full screen
+
 int main(void)
 {
 	Controls controls(settings::initialPosition, settings::initialHorizontalAngle,settings::initialVerticalAngle,
@@ -76,6 +102,7 @@ int main(void)
 	if (!init(&window)) { return -1; }
 
 	glfwSetScrollCallback(window, Controls::scrollFun);//set call back function to enable mouse scrolling
+	glfwSetKeyCallback(window, setGUI);
 
 	// Dark blue background
 	glClearColor(settings::backgroundColor.x, settings::backgroundColor.y, settings::backgroundColor.z, settings::backgroundColor.a);
@@ -103,8 +130,8 @@ int main(void)
 
 	GLvoid* pointerToGPUMemory = lightsManager.setUpLights(programID);
 
-	//repeat for material a material
-	Material mat1{ glm::vec4(1,0,0,0), 0.1f, 0.3f, 5.0f }; 
+	//repeat for a material
+	Material mat1{ glm::vec4(0.0,0.0,0.0,0), 0.0f, 0.8f, 250.0f }; 
 	GLuint materialBuffer;
 	glGenBuffers(1, &materialBuffer);
 	glBindBuffer(GL_UNIFORM_BUFFER, materialBuffer);
@@ -116,6 +143,9 @@ int main(void)
 
 	GLuint materialBlockID = glGetUniformBlockIndex(programID, "material");
 
+	//set up the GUI
+	initGUI(window, controls);
+	
 
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -130,6 +160,8 @@ int main(void)
 		//Uniform scaling only! if for some reason you want to use non-uniform scaling you need to use the
 		//inverse transpose model-view matrix in the fragment shader where indicated
 		glm::mat4 modelMatrix = glm::mat4(1.0); 
+		modelMatrix = glm::rotate(modelMatrix, 7 * 3.14f/180, glm::vec3(1.0f, 0.0f, 0.0f));
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, 0.0, -2.0));
 
 		glm::mat4 MVP = projectionMatrix * viewMatrix * modelMatrix;
 
@@ -145,6 +177,11 @@ int main(void)
 
 		surface.Render(modelMatrix, viewMatrix, projectionMatrix);
 
+		if (showGUI)
+		{
+			TwDraw();
+		}
+
 		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -153,9 +190,9 @@ int main(void)
 	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
 		glfwWindowShouldClose(window) == 0);
 
-	// Close OpenGL window and terminate GLFW
+	// Close GUI and OpenGL window and terminate GLFW
+	TwTerminate();
 	glfwTerminate();
-
 	return 0;
 }
 
