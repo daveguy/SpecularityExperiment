@@ -9,6 +9,10 @@ in vec3 EyeDirection_cameraspace;
 out vec3 color;
 
 uniform mat4 V;
+uniform vec3 diffuseColor;
+uniform float ambientPower;
+uniform float specularReflectance;
+uniform float specularPower;
 
 //Lights are in a uniform buffer
 struct Light
@@ -21,13 +25,13 @@ uniform light
 	Light lights[10];
 };
 
-layout(std140) uniform material
-{
-	vec4 diffuseColor;
-	float ambientPower;
-	float specularReflectance;
-	float specularPower;
-};
+//layout(std140) uniform material
+//{
+//	vec4 diffuseColor;
+//	float ambientPower;
+//	float specularReflectance;
+//	float specularPower;
+//};
 
 void main(){
 

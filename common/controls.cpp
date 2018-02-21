@@ -27,7 +27,7 @@ void Controls::DisableMouse()
 	mouseEnabled = false;
 }
 
-void Controls::computeMatricesFromInputs(GLFWwindow * window)
+void Controls::computeMatricesFromInputs(GLFWwindow * window, const glm::vec2 &currentResolution)
 {
 	// glfwGetTime is called only once, the first time this function is called
 	static double lastTime = glfwGetTime();
@@ -43,11 +43,11 @@ void Controls::computeMatricesFromInputs(GLFWwindow * window)
 		glfwGetCursorPos(window, &xpos, &ypos);
 
 		// Reset mouse position for next frame
-		glfwSetCursorPos(window, 1024 / 2, 768 / 2);
+		glfwSetCursorPos(window, currentResolution.x / 2, currentResolution.y / 2);
 
 		// Compute new orientation
-		horizontalAngle += mouseSpeed * float(1024 / 2 - xpos);
-		verticalAngle += mouseSpeed * float(768 / 2 - ypos);
+		horizontalAngle += mouseSpeed * float(currentResolution.x / 2 - xpos);
+		verticalAngle += mouseSpeed * float(currentResolution.y / 2 - ypos);
 	}
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion

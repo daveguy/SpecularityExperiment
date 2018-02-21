@@ -5,7 +5,6 @@
 // Include GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-using namespace glm;
 
 class Controls
 {
@@ -18,7 +17,7 @@ public:
 		scroll = initScroll;
 	}
 	static void scrollFun(GLFWwindow *window, double xOffset, double yOffset);//callback function for field of view
-	void computeMatricesFromInputs(GLFWwindow* window);
+	void computeMatricesFromInputs(GLFWwindow* window, const glm::vec2 &currentResolution);
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();
 	void EnableMouse();

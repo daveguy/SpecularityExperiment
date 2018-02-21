@@ -1,12 +1,27 @@
 #pragma once
+#include <GL/glew.h>
+#include <glfw3.h>
 #include <glm/glm.hpp>
 
 //diffuse color, ambient power, specular reflectance, specular power
-struct Material
+class Material
 {
-	//needs to be vec4 to make block uniforms happy
-	glm::vec4 diffuseColor;
+public:
+	Material(glm::vec4 diffuseColor, float ambientPower, float specularReflectance, float specularPower)
+		: diffuseColor(diffuseColor), ambientPower(ambientPower), specularReflectance(specularReflectance), specularPower(specularPower) {}
+
+	void GetUniformIDs(GLuint programID);
+	void SetUniforms();
+
+	//all needs to be public to work with the controls easily
+	glm::vec3 diffuseColor;
 	float ambientPower;
 	float specularReflectance;
 	float specularPower;
+
+private:
+	GLuint diffuseColorID;
+	GLuint ambientPowerID;
+	GLuint specularReflectanceID;
+	GLuint specularPowerID;
 };

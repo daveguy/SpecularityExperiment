@@ -26,8 +26,18 @@ Controls controls(settings::initialPosition, settings::initialHorizontalAngle, s
 	settings::initialFoV, settings::moveSpeed, settings::scrollSpeed, settings::mouseSpeed, 0.0f, false);
 
 bool showGUI = false;
+bool fullScreen = false;
+glm::vec2 monitorResolution;
+glm::vec2 currentResolution(settings::winDimemsions.x, settings::winDimemsions.y);
 
 //TODO add static and parallel specularities
+
+void GetResolution(glm::vec2& resolution)
+{
+	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+	resolution.x = mode->width;
+	resolution.y = mode->height;
+}
 
 //initializes glfw and glew and creates a window
 bool init(GLFWwindow** window)
@@ -71,11 +81,11 @@ bool init(GLFWwindow** window)
 
 	// Set the mouse at the center of the screen
 	glfwPollEvents();
-	glfwSetCursorPos(*window, 1024 / 2, 768 / 2);
+	glfwSetCursorPos(*window, settings::winDimemsions.x / 2, settings::winDimemsions.y / 2);
 	return true;
 }
 
-//TODO set up GUI to display/change the material and lights?
+//TODO set up GUI to display/change the lights?
 void initGUI(GLFWwindow* window, Controls& controls, Material& material)
 {
 	TwInit(TW_OPENGL_CORE, NULL);
@@ -91,38 +101,72 @@ void initGUI(GLFWwindow* window, Controls& controls, Material& material)
 
 	TwBar* materialGUI = TwNewBar("Material");
 	TwSetParam(materialGUI, NULL, "position", TW_PARAM_CSTRING, 1, "16 125");
+	TwSetParam(materialGUI, NULL, "size", TW_PARAM_CSTRING, 1, "200 150");
 	TwAddVarRW(materialGUI, "R", TW_TYPE_FLOAT, &material.diffuseColor.x, "min=0, max=1, step=0.01");
 	TwAddVarRW(materialGUI, "G", TW_TYPE_FLOAT, &material.diffuseColor.y, "min=0, max=1, step=0.01");
 	TwAddVarRW(materialGUI, "B", TW_TYPE_FLOAT, &material.diffuseColor.z, "min=0, max=1, step=0.01");
+	TwAddVarRW(materialGUI, "Ambient Power", TW_TYPE_FLOAT, &material.ambientPower, "min=0, max=1, step=0.01");
+	TwAddVarRW(materialGUI, "Specular Reflectance", TW_TYPE_FLOAT, &material.specularReflectance, "min=0, max=5, step=0.01");
+	TwAddVarRW(materialGUI, "Specular Power", TW_TYPE_FLOAT, &material.specularPower, "min=0");
 }
 
-//TODO this should make the mouse visible/invisible and set mouse callbacks to the GUI or not
-//callback function to toggle GUI on and off and enable mouse
-void setGUI(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_G && action == GLFW_PRESS)
-	{
-		showGUI = !showGUI;
+void toggleGUI(GLFWwindow* window)
+{
+	showGUI = !showGUI;
 
-		if (showGUI)
-		{
-			controls.EnableMouse();
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			glfwSetMouseButtonCallback(window, (GLFWmousebuttonfun)TwEventMouseButtonGLFW3);
-			glfwSetCursorPosCallback(window, (GLFWcursorposfun)TwEventMousePosGLFW3);
-		}
-		else
-		{
-			// Reset mouse position for next frame
-			glfwSetCursorPos(window, 1024 / 2, 768 / 2);
-			controls.DisableMouse();
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			glfwSetMouseButtonCallback(window, NULL);
-			glfwSetCursorPosCallback(window, NULL);
-		}
+	if (showGUI)
+	{
+		controls.EnableMouse();
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		glfwSetMouseButtonCallback(window, (GLFWmousebuttonfun)TwEventMouseButtonGLFW3);
+		glfwSetCursorPosCallback(window, (GLFWcursorposfun)TwEventMousePosGLFW3);
+	}
+	else
+	{
+		// Reset mouse position for next frame otherwise it moves the scene
+		glfwSetCursorPos(window, currentResolution.x / 2, currentResolution.y / 2);
+		controls.DisableMouse();
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetMouseButtonCallback(window, NULL);
+		glfwSetCursorPosCallback(window, NULL);
 	}
 }
 
-//TODO set up the callback for full screen
+void toggleFullScreen(GLFWwindow* window)
+{
+	fullScreen = !fullScreen;
+	if (fullScreen)
+	{
+		currentResolution = glm::vec2(monitorResolution.x, monitorResolution.y);
+		glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, currentResolution.x, currentResolution.y, GLFW_DONT_CARE);
+		TwWindowSize(currentResolution.x, currentResolution.y);
+
+	}
+	else
+	{
+		currentResolution = glm::vec2(settings::winDimemsions.x, settings::winDimemsions.y);
+		glfwSetWindowMonitor(window, NULL, 100, 100, currentResolution.x, currentResolution.y, GLFW_DONT_CARE);
+		TwWindowSize(currentResolution.x, currentResolution.y);
+		glfwSetCursorPos(window, currentResolution.x / 2, currentResolution.y / 2);
+	}
+	int VPx;
+	int VPy;
+	glfwGetFramebufferSize(window, &VPx, &VPy);
+	glViewport(0, 0, VPx, VPy);
+}
+
+//callback function to toggle GUI on and off and enable mouse, and to enable fullscreen
+void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_G && action == GLFW_PRESS)
+	{
+		toggleGUI(window);
+	}
+	else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+	{
+		toggleFullScreen(window);
+	}
+}
+
 
 int main(void)
 {
@@ -132,8 +176,10 @@ int main(void)
 	GLFWwindow* window;
 	if (!init(&window)) { return -1; }
 
+	GetResolution(monitorResolution);
+
 	glfwSetScrollCallback(window, Controls::scrollFun);//set call back function to enable mouse scrolling
-	glfwSetKeyCallback(window, setGUI);
+	glfwSetKeyCallback(window, keyPressCallback);
 
 	// Dark blue background
 	glClearColor(settings::backgroundColor.x, settings::backgroundColor.y, settings::backgroundColor.z, settings::backgroundColor.a);
@@ -162,17 +208,8 @@ int main(void)
 	GLvoid* pointerToGPUMemory = lightsManager.setUpLights(programID);
 
 	//repeat for a material
-	Material mat1{ glm::vec4(0.0,0.0,0.0,0), 0.0f, 0.8f, 250.0f }; 
-	GLuint materialBuffer;
-	glGenBuffers(1, &materialBuffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, materialBuffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(mat1), &mat1, GL_DYNAMIC_DRAW);
-
-	pointerToGPUMemory = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-	memcpy(pointerToGPUMemory, &mat1, sizeof(mat1));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-
-	GLuint materialBlockID = glGetUniformBlockIndex(programID, "material");
+	Material mat1( glm::vec4(0.0,0.0,0.0,0), 0.0f, 0.8f, 250.0f ); 
+	mat1.GetUniformIDs(programID);
 
 	//set up the GUI
 	initGUI(window, controls, mat1);
@@ -183,7 +220,7 @@ int main(void)
 
 		glUseProgram(programID);
 
-		controls.computeMatricesFromInputs(window);
+		controls.computeMatricesFromInputs(window, currentResolution);
 		glm::mat4 projectionMatrix = controls.getProjectionMatrix();
 		glm::mat4 viewMatrix = controls.getViewMatrix();
 
@@ -202,9 +239,7 @@ int main(void)
 		//bind lights to slot 0
 		lightsManager.BindAndConnectLights(programID, 0);
 
-		//bind material to slot 1
-		glBindBufferBase(GL_UNIFORM_BUFFER, 1, materialBuffer);
-		glUniformBlockBinding(programID, 1, materialBlockID);
+		mat1.SetUniforms();
 
 		surface.Render(modelMatrix, viewMatrix, projectionMatrix);
 

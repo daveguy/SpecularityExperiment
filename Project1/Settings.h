@@ -4,7 +4,7 @@
 
 namespace settings
 {
-	//window settings
+	//window settings (width, height)
 	glm::vec2 winDimemsions(1024, 768);
 
 	//Initial position and FoV for the camera controls
