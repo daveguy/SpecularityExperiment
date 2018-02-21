@@ -11,16 +11,18 @@ class Controls
 {
 public:
 	Controls(glm::vec3 position, float horizontalAngle, float verticalAngle,
-		float initialFoV, float speed, float scrollSpeed, float mouseSpeed, float initScroll)
+		float initialFoV, float speed, float scrollSpeed, float mouseSpeed, float initScroll, bool mouseEnabled)
 		:position(position), horizontalAngle(horizontalAngle), verticalAngle(verticalAngle),
 		initialFoV(initialFoV), speed(speed), scrollSpeed(scrollSpeed),
-		mouseSpeed(mouseSpeed) {
+		mouseSpeed(mouseSpeed), mouseEnabled(mouseEnabled) {
 		scroll = initScroll;
 	}
 	static void scrollFun(GLFWwindow *window, double xOffset, double yOffset);//callback function for field of view
 	void computeMatricesFromInputs(GLFWwindow* window);
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();
+	void EnableMouse();
+	void DisableMouse();
 
 	///position is public so the AntTweak can acces them directly
 	// Initial position : on +Z
@@ -41,4 +43,6 @@ private:
 	float scrollSpeed;
 	float mouseSpeed;
 	static float scroll;
+
+	bool mouseEnabled;
 };

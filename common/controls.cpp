@@ -17,6 +17,16 @@ glm::mat4 Controls::getProjectionMatrix()
 	return ProjectionMatrix;
 }
 
+void Controls::EnableMouse()
+{
+	mouseEnabled = true;
+}
+
+void Controls::DisableMouse()
+{
+	mouseEnabled = false;
+}
+
 void Controls::computeMatricesFromInputs(GLFWwindow * window)
 {
 	// glfwGetTime is called only once, the first time this function is called
@@ -26,16 +36,19 @@ void Controls::computeMatricesFromInputs(GLFWwindow * window)
 	double currentTime = glfwGetTime();
 	float deltaTime = float(currentTime - lastTime);
 
-	// Get mouse position
-	double xpos, ypos;
-	glfwGetCursorPos(window, &xpos, &ypos);
+	if (!mouseEnabled)
+	{
+		// Get mouse position
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
 
-	// Reset mouse position for next frame
-	glfwSetCursorPos(window, 1024 / 2, 768 / 2);
+		// Reset mouse position for next frame
+		glfwSetCursorPos(window, 1024 / 2, 768 / 2);
 
-	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(1024 / 2 - xpos);
-	verticalAngle += mouseSpeed * float(768 / 2 - ypos);
+		// Compute new orientation
+		horizontalAngle += mouseSpeed * float(1024 / 2 - xpos);
+		verticalAngle += mouseSpeed * float(768 / 2 - ypos);
+	}
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(

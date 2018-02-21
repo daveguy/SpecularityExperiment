@@ -21,6 +21,14 @@
 #include "Surface.h"
 #include "Settings.h"
 
+//variables outside main so callback functions can access them
+Controls controls(settings::initialPosition, settings::initialHorizontalAngle, settings::initialVerticalAngle,
+	settings::initialFoV, settings::moveSpeed, settings::scrollSpeed, settings::mouseSpeed, 0.0f, false);
+
+bool showGUI = false;
+
+//TODO add static and parallel specularities
+
 //initializes glfw and glew and creates a window
 bool init(GLFWwindow** window)
 {
@@ -68,34 +76,57 @@ bool init(GLFWwindow** window)
 }
 
 //TODO set up GUI to display/change the material and lights?
-void initGUI(GLFWwindow* window, Controls& controls)
+void initGUI(GLFWwindow* window, Controls& controls, Material& material)
 {
 	TwInit(TW_OPENGL_CORE, NULL);
 	TwWindowSize(settings::winDimemsions.x, settings::winDimemsions.y);
-	TwBar* positionGUI = TwNewBar("Position Settings");
 	TwDefine(" TW_HELP visible=false ");
+
+	TwBar* positionGUI = TwNewBar("Camera Position");
+	TwSetParam(positionGUI, NULL, "refresh", TW_PARAM_CSTRING, 1, "0.1");
+	TwSetParam(positionGUI, NULL, "size", TW_PARAM_CSTRING, 1, "200 100");
 	TwAddVarRW(positionGUI, "Pos X", TW_TYPE_FLOAT, &controls.position.x, "step=0.01");
 	TwAddVarRW(positionGUI, "Pos Y", TW_TYPE_FLOAT, &controls.position.y, "step=0.01");
 	TwAddVarRW(positionGUI, "Pos Z", TW_TYPE_FLOAT, &controls.position.z, "step=0.01");
-	
-	glfwSetMouseButtonCallback(window, (GLFWmousebuttonfun)TwEventMouseButtonGLFW);
+
+	TwBar* materialGUI = TwNewBar("Material");
+	TwSetParam(materialGUI, NULL, "position", TW_PARAM_CSTRING, 1, "16 125");
+	TwAddVarRW(materialGUI, "R", TW_TYPE_FLOAT, &material.diffuseColor.x, "min=0, max=1, step=0.01");
+	TwAddVarRW(materialGUI, "G", TW_TYPE_FLOAT, &material.diffuseColor.y, "min=0, max=1, step=0.01");
+	TwAddVarRW(materialGUI, "B", TW_TYPE_FLOAT, &material.diffuseColor.z, "min=0, max=1, step=0.01");
 }
 
 //TODO this should make the mouse visible/invisible and set mouse callbacks to the GUI or not
-bool showGUI = true;
-void setGUI(GLFWwindow*, int key, int scancode, int action, int mods) {
+//callback function to toggle GUI on and off and enable mouse
+void setGUI(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_G && action == GLFW_PRESS)
 	{
 		showGUI = !showGUI;
+
+		if (showGUI)
+		{
+			controls.EnableMouse();
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetMouseButtonCallback(window, (GLFWmousebuttonfun)TwEventMouseButtonGLFW3);
+			glfwSetCursorPosCallback(window, (GLFWcursorposfun)TwEventMousePosGLFW3);
+		}
+		else
+		{
+			// Reset mouse position for next frame
+			glfwSetCursorPos(window, 1024 / 2, 768 / 2);
+			controls.DisableMouse();
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetMouseButtonCallback(window, NULL);
+			glfwSetCursorPosCallback(window, NULL);
+		}
 	}
 }
 
-//TODO set up another callback for full screen
+//TODO set up the callback for full screen
 
 int main(void)
 {
-	Controls controls(settings::initialPosition, settings::initialHorizontalAngle,settings::initialVerticalAngle,
-		settings::initialFoV, settings::moveSpeed, settings::scrollSpeed, settings::mouseSpeed, 0.0f);
+	
 	LightsManager lightsManager;
 
 	GLFWwindow* window;
@@ -144,7 +175,7 @@ int main(void)
 	GLuint materialBlockID = glGetUniformBlockIndex(programID, "material");
 
 	//set up the GUI
-	initGUI(window, controls);
+	initGUI(window, controls, mat1);
 	
 
 	do {
