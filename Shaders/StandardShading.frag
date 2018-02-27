@@ -25,14 +25,6 @@ uniform light
 	Light lights[10];
 };
 
-//layout(std140) uniform material
-//{
-//	vec4 diffuseColor;
-//	float ambientPower;
-//	float specularReflectance;
-//	float specularPower;
-//};
-
 void main(){
 
 	
@@ -42,9 +34,8 @@ void main(){
 
 	//loop over all lights and add them
 	for(int i = 0; i < 10; i++){
-		// Vector that goes from the vertex to the light, in camera space. M is ommited because it's identity.
-		vec3 LightPosition_cameraspace = ( V * lights[i].lightPositionWorldSpace).xyz;
-		vec3 LightDirection_cameraspace = LightPosition_cameraspace + EyeDirection_cameraspace;
+		vec4 lightDirection_worldspace = lights[i].lightPositionWorldSpace - vec4(Position_worldspace,1);
+		vec3 LightDirection_cameraspace = ( V * lightDirection_worldspace).xyz;
 
 		// Distance to the light
 		float dist = distance( lights[i].lightPositionWorldSpace.xyz, Position_worldspace );
@@ -61,12 +52,15 @@ void main(){
 		vec3 R = reflect(-l,n);
 		float cosAlpha = clamp( dot( E,R ), 0,1 );
 		
+		vec3 h = normalize(l + E);
+		float cosAlpha2 = clamp(dot(h,n), 0,1);
+
 		float attenuation = dist*dist;
 
 		color += 
 			// Diffuse : "color" of the object
 			diffuseColor.xyz * lights[i].lightColor.xyz * lights[i].lightColor.w * cosTheta / attenuation +
 			// Specular : reflective highlight, like a mirror
-			specularReflectance * lights[i].lightColor.xyz * lights[i].lightColor.w * pow(cosAlpha,specularPower) / attenuation;
+			specularReflectance * lights[i].lightColor.xyz * lights[i].lightColor.w * pow(cosAlpha2,specularPower) / attenuation;
 	}
 }

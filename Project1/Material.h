@@ -7,7 +7,7 @@
 class Material
 {
 public:
-	Material(glm::vec4 diffuseColor, float ambientPower, float specularReflectance, float specularPower)
+	Material(glm::vec3 diffuseColor, float ambientPower, float specularReflectance, float specularPower)
 		: diffuseColor(diffuseColor), ambientPower(ambientPower), specularReflectance(specularReflectance), specularPower(specularPower) {}
 
 	void GetUniformIDs(GLuint programID);

@@ -29,6 +29,14 @@ bool showGUI = false;
 bool fullScreen = false;
 glm::vec2 monitorResolution;
 glm::vec2 currentResolution(settings::winDimemsions.x, settings::winDimemsions.y);
+enum SpecularityType
+{
+	GLOSSY,
+	STATIC,
+	PARALLEL,
+};
+SpecularityType specularityType(GLOSSY);
+
 
 //TODO add static and parallel specularities
 
@@ -155,6 +163,22 @@ void toggleFullScreen(GLFWwindow* window)
 	glViewport(0, 0, VPx, VPy);
 }
 
+void toggleSpecularityType(int key)
+{
+	if (key == GLFW_KEY_1)
+	{
+		specularityType = GLOSSY;
+	}
+	else if (key == GLFW_KEY_2)
+	{
+		specularityType = STATIC;
+	}
+	else
+	{
+		specularityType = PARALLEL;
+	}
+}
+
 //callback function to toggle GUI on and off and enable mouse, and to enable fullscreen
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_G && action == GLFW_PRESS)
@@ -165,8 +189,27 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	{
 		toggleFullScreen(window);
 	}
+	else if ((key == GLFW_KEY_1 || key == GLFW_KEY_2 || key == GLFW_KEY_3) && action == GLFW_PRESS)
+	{
+		toggleSpecularityType(key);
+	}
 }
 
+void setSpecularityCameraPosition(const Controls &controls, glm::vec3 &specularityCameraPosition)
+{
+	if (specularityType == GLOSSY)
+	{
+		specularityCameraPosition = glm::vec3(controls.position);
+	}
+	else if (specularityType == STATIC)
+	{
+		specularityCameraPosition = glm::vec3(settings::specularityPositionStatic);
+	}
+	else
+	{
+		specularityCameraPosition = glm::vec3(settings::specularityPositionParallel);
+	}
+}
 
 int main(void)
 {
@@ -208,13 +251,21 @@ int main(void)
 	GLvoid* pointerToGPUMemory = lightsManager.setUpLights(programID);
 
 	//repeat for a material
-	Material mat1( glm::vec4(0.0,0.0,0.0,0), 0.0f, 0.8f, 250.0f ); 
+	Material mat1( glm::vec3(0.0f,0.0f,0.0f), 0.0f, 0.8f, 250.0f ); 
 	mat1.GetUniformIDs(programID);
 
 	//set up the GUI
 	initGUI(window, controls, mat1);
-	
+	//Used to calculate the specular component in the fragment shader, may or may not correspoond to the actual camera location
+	glm::vec3 specularityCameraPosition;
+	GLuint specularityCameraPositionID = glGetUniformLocation(programID, "cameraPosition_worldspace");
 
+	//surface center is at the origin. 
+	//Uniform scaling only! if for some reason you want to use non-uniform scaling you need to use the
+	//inverse transpose model-view matrix in the fragment shader where indicated
+	glm::mat4 modelMatrix = glm::mat4(1.0); 
+	modelMatrix = glm::rotate(modelMatrix, 7 * 3.14f/180, glm::vec3(1.0f, 0.0f, 0.0f));
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, -2.0f));
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -224,13 +275,6 @@ int main(void)
 		glm::mat4 projectionMatrix = controls.getProjectionMatrix();
 		glm::mat4 viewMatrix = controls.getViewMatrix();
 
-		//surface center is at the origin. 
-		//Uniform scaling only! if for some reason you want to use non-uniform scaling you need to use the
-		//inverse transpose model-view matrix in the fragment shader where indicated
-		glm::mat4 modelMatrix = glm::mat4(1.0); 
-		modelMatrix = glm::rotate(modelMatrix, 7 * 3.14f/180, glm::vec3(1.0f, 0.0f, 0.0f));
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, 0.0, -2.0));
-
 		glm::mat4 MVP = projectionMatrix * viewMatrix * modelMatrix;
 
 		// Send the view matrix, the model and MVP are set by the surface
@@ -239,7 +283,12 @@ int main(void)
 		//bind lights to slot 0
 		lightsManager.BindAndConnectLights(programID, 0);
 
+		//set material uniforms
 		mat1.SetUniforms();
+
+		//update camera postion for calculating specularities
+		setSpecularityCameraPosition(controls, specularityCameraPosition);
+		glUniform3f(specularityCameraPositionID, specularityCameraPosition.x, specularityCameraPosition.y, specularityCameraPosition.z);
 
 		surface.Render(modelMatrix, viewMatrix, projectionMatrix);
 
