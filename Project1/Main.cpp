@@ -251,7 +251,7 @@ int main(void)
 	GLvoid* pointerToGPUMemory = lightsManager.setUpLights(programID);
 
 	//repeat for a material
-	Material mat1( glm::vec3(0.0f,0.0f,0.0f), 0.0f, 0.8f, 250.0f ); 
+	Material mat1( glm::vec3(0.0f,0.0f,0.0f), 0.0f, 0.5f, 250.0f ); 
 	mat1.GetUniformIDs(programID);
 
 	//set up the GUI

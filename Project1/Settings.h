@@ -24,7 +24,7 @@ namespace settings
 
 	glm::vec4 backgroundColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	char* pathToObject = "surfaceLowAmp.obj";
+	char* pathToObject = "surface.obj";
 
 	//initially the same as the initial camera position
 	glm::vec3 specularityPositionStatic(initialPosition);
