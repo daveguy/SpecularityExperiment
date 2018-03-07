@@ -20,6 +20,7 @@
 #include "LightsManager.h"
 #include "Surface.h"
 #include "Settings.h"
+#include <iostream>
 
 //variables outside main so callback functions can access them
 Controls controls(settings::initialPosition, settings::initialHorizontalAngle, settings::initialVerticalAngle,
@@ -47,6 +48,11 @@ void GetResolution(glm::vec2& resolution)
 	resolution.y = mode->height;
 }
 
+static void glfwError(int id, const char* description)
+{
+	std::cout << description << std::endl;
+}
+
 //initializes glfw and glew and creates a window
 bool init(GLFWwindow** window)
 {
@@ -64,10 +70,12 @@ bool init(GLFWwindow** window)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
+
 	// Open a window and create its OpenGL context
 	*window = glfwCreateWindow(settings::winDimemsions.x, settings::winDimemsions.y, "Project1", NULL, NULL);
 	if (*window == NULL) {
-		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
+		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible.\n");
 		getchar();
 		glfwTerminate();
 		return false;
@@ -216,6 +224,7 @@ int main(void)
 	
 	LightsManager lightsManager;
 
+	glfwSetErrorCallback(&glfwError);
 	GLFWwindow* window;
 	if (!init(&window)) { return -1; }
 
@@ -251,7 +260,7 @@ int main(void)
 	GLvoid* pointerToGPUMemory = lightsManager.setUpLights(programID);
 
 	//repeat for a material
-	Material mat1( glm::vec3(0.0f,0.0f,0.0f), 0.0f, 0.5f, 250.0f ); 
+	Material mat1( glm::vec3(0.0f,0.0f,0.0f), 0.0f, 0.8f, 150.0f ); 
 	mat1.GetUniformIDs(programID);
 
 	//set up the GUI
@@ -267,7 +276,7 @@ int main(void)
 	modelMatrix = glm::rotate(modelMatrix, 7 * 3.14f/180, glm::vec3(1.0f, 0.0f, 0.0f));
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, -2.0f));
 	do {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
 
 		glUseProgram(programID);
 
@@ -276,9 +285,6 @@ int main(void)
 		glm::mat4 viewMatrix = controls.getViewMatrix();
 
 		glm::mat4 MVP = projectionMatrix * viewMatrix * modelMatrix;
-
-		// Send the view matrix, the model and MVP are set by the surface
-		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
 
 		//bind lights to slot 0
 		lightsManager.BindAndConnectLights(programID, 0);
@@ -290,7 +296,24 @@ int main(void)
 		setSpecularityCameraPosition(controls, specularityCameraPosition);
 		glUniform3f(specularityCameraPositionID, specularityCameraPosition.x, specularityCameraPosition.y, specularityCameraPosition.z);
 
+		glDrawBuffer(GL_BACK_LEFT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// Send the view matrix, the model and MVP are set by the surface
+		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
+
+		if (showGUI)
+		{
+			TwDraw();
+		}
 		surface.Render(modelMatrix, viewMatrix, projectionMatrix);
+
+		glDrawBuffer(GL_BACK_RIGHT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.3, 0, 0));
+		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
+
+		surface.Render(modelMatrix, viewMatrix, projectionMatrix);
+
 
 		if (showGUI)
 		{

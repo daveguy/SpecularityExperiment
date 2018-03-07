@@ -4,8 +4,8 @@ GLvoid* LightsManager::setUpLights(GLuint programID)
 {
 	//shader allows for a max of 10 lights, can be changed
 	lights = {
-		{ glm::vec4(1.5,1,-5,1), glm::vec4(1,1,1,20) },
-		{ glm::vec4(-1.5,1,-5,1), glm::vec4(1,1,1,20) }
+		{ glm::vec4(1.5,0.75,-4,1), glm::vec4(1,1,1,20) },
+		{ glm::vec4(-1.5,0.75,-4,1), glm::vec4(1,1,1,20) }
 	};
 
 	//Create a uniform buffer
