@@ -30,6 +30,8 @@ bool showGUI = false;
 bool fullScreen = false;
 glm::vec2 monitorResolution;
 glm::vec2 currentResolution(settings::winDimemsions.x, settings::winDimemsions.y);
+float interocularDistance = settings::defaultInterocularDistance;
+
 enum SpecularityType
 {
 	GLOSSY,
@@ -124,6 +126,11 @@ void initGUI(GLFWwindow* window, Controls& controls, Material& material)
 	TwAddVarRW(materialGUI, "Ambient Power", TW_TYPE_FLOAT, &material.ambientPower, "min=0, max=1, step=0.01");
 	TwAddVarRW(materialGUI, "Specular Reflectance", TW_TYPE_FLOAT, &material.specularReflectance, "min=0, max=5, step=0.01");
 	TwAddVarRW(materialGUI, "Specular Power", TW_TYPE_FLOAT, &material.specularPower, "min=0");
+
+	TwBar* interocularDistanceGUI = TwNewBar("Interocular Distance");
+	TwSetParam(interocularDistanceGUI, NULL, "position", TW_PARAM_CSTRING, 1, "16 300");
+	TwSetParam(interocularDistanceGUI, NULL, "size", TW_PARAM_CSTRING, 1, "200 25");
+	TwAddVarRW(interocularDistanceGUI, "distance", TW_TYPE_FLOAT, &interocularDistance, "min=0, max=1, step=0.01");
 }
 
 void toggleGUI(GLFWwindow* window)
@@ -296,28 +303,42 @@ int main(void)
 		setSpecularityCameraPosition(controls, specularityCameraPosition);
 		glUniform3f(specularityCameraPositionID, specularityCameraPosition.x, specularityCameraPosition.y, specularityCameraPosition.z);
 
-		glDrawBuffer(GL_BACK_LEFT);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// Send the view matrix, the model and MVP are set by the surface
-		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
-
-		if (showGUI)
+		//3D does not work windowed
+		if (!fullScreen)
 		{
-			TwDraw();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			// Send the view matrix, the model and MVP are set by the surface
+			glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
+			if (showGUI)
+			{
+				TwDraw();
+			}
+			surface.Render(modelMatrix, viewMatrix, projectionMatrix);
 		}
-		surface.Render(modelMatrix, viewMatrix, projectionMatrix);
-
-		glDrawBuffer(GL_BACK_RIGHT);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.3, 0, 0));
-		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
-
-		surface.Render(modelMatrix, viewMatrix, projectionMatrix);
-
-
-		if (showGUI)
+		else
 		{
-			TwDraw();
+			glDrawBuffer(GL_BACK_LEFT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			// Send the view matrix, the model and MVP are set by the surface
+			glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
+
+			if (showGUI)
+			{
+				TwDraw();
+			}
+			surface.Render(modelMatrix, viewMatrix, projectionMatrix);
+
+			glDrawBuffer(GL_BACK_RIGHT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			viewMatrix = glm::translate(viewMatrix, glm::vec3(interocularDistance, 0, 0));
+			glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);
+
+			surface.Render(modelMatrix, viewMatrix, projectionMatrix);
+
+			if (showGUI)
+			{
+				TwDraw();
+			}
 		}
 
 		// Swap buffers

@@ -29,4 +29,7 @@ namespace settings
 	//initially the same as the initial camera position
 	glm::vec3 specularityPositionStatic(initialPosition);
 	glm::vec3 specularityPositionParallel(0.0f, 1.0f, 1000.0f);
+
+	//does not relate to real world units, not sure how to make it
+	float defaultInterocularDistance = 0.3f;
 }
